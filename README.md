@@ -90,3 +90,4 @@ docker compose -f docker-compose.server.yml --profile observability up -d
 - [ADR 0002: Go API and observability stack](docs/adr/0002-go-api-observability.md)
 - [ADR 0003: Challenge GUI and unlock model](docs/adr/0003-challenge-gui-unlocks.md)
 - [ADR 0004: Container deployment and local hooks](docs/adr/0004-container-deployment-local-hooks.md)
+- [Initial build postmortem](docs/postmortem/2026-05-07-initial-build.md)
