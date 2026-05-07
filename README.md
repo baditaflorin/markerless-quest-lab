@@ -6,7 +6,7 @@ The repository is intentionally shaped like a deployable product from day one:
 
 - Go backend with modular packages, structured logging, health endpoints, and Prometheus metrics.
 - React + Vite frontend using MediaPipe Tasks Vision for battle-tested markerless pose landmarks in the browser.
-- Docker Compose and Nginx deployment assets for port `25342`.
+- Docker Compose, Nginx, and optional Prometheus assets for port `25342`.
 - Local git hooks and smoke checks instead of GitHub Actions.
 - ADRs documenting the major technical choices.
 
@@ -58,20 +58,24 @@ The hooks run the same local checks before commits and pushes. No CI configurati
 
 ## Container Publishing
 
-Build an amd64 image for GitHub Container Registry:
+Build amd64 images for GitHub Container Registry:
 
 ```bash
-docker buildx build \
-  --platform linux/amd64 \
-  -t ghcr.io/baditaflorin/markerless-quest-lab:latest \
-  --push .
+./scripts/build-and-push-amd64.sh
 ```
 
 Then on the server:
 
 ```bash
-docker compose -f deploy/docker-compose.server.yml pull
-docker compose -f deploy/docker-compose.server.yml up -d
+cd deploy
+docker compose -f docker-compose.server.yml pull
+docker compose -f docker-compose.server.yml up -d
+```
+
+To run Prometheus beside the app:
+
+```bash
+docker compose -f docker-compose.server.yml --profile observability up -d
 ```
 
 ## Security Notes

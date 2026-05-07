@@ -10,7 +10,7 @@ The server target should be able to run `docker compose pull` and serve the app 
 
 ## Decision
 
-Build a multi-stage Docker image that compiles the React frontend and Go backend into one runtime container. Use Nginx as the public reverse proxy on port `25342`, forwarding `/api`, `/healthz`, `/readyz`, and `/metrics` to the app container.
+Build separate multi-stage images for the Go API and the Nginx-served React frontend. Use Nginx as the public reverse proxy on port `25342`, forwarding `/api`, `/healthz`, `/readyz`, and `/metrics` to the app container. The server Compose file uses GHCR image names and pins `platform: linux/amd64` so a remote server can pull prebuilt images.
 
 Local quality gates live in `scripts/check.sh`, `scripts/smoke.sh`, and `.githooks/`.
 
