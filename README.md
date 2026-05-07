@@ -107,4 +107,5 @@ docker compose -f docker-compose.server.yml --profile observability up -d
 - [ADR 0004: Container deployment and local hooks](docs/adr/0004-container-deployment-local-hooks.md)
 - [ADR 0005: Real-time sidequest engine and unlock modules](docs/adr/0005-realtime-sidequest-engine.md)
 - [ADR 0006: Browser-only GitHub Pages demo](docs/adr/0006-browser-only-github-pages-demo.md)
+- [ADR 0007: Module and settings contracts](docs/adr/0007-module-and-settings-contracts.md)
 - [Initial build postmortem](docs/postmortem/2026-05-07-initial-build.md)

@@ -1,5 +1,6 @@
 import type { Challenge } from "../api/types";
 import type { PoseSnapshot } from "../pose/usePoseTracker";
+import { defaultChallengeSettings, type ChallengeSettings } from "./settings";
 
 export type ObjectiveState = {
   id: string;
@@ -50,7 +51,8 @@ export function initialRealtimeState(challengeID: string | null = null): Realtim
 export function updateRealtimeChallenge(
   challenge: Challenge | null,
   snapshot: PoseSnapshot,
-  previous: RealtimeChallengeState
+  previous: RealtimeChallengeState,
+  settings: ChallengeSettings = defaultChallengeSettings
 ): RealtimeChallengeState {
   if (!challenge) {
     return initialRealtimeState(null);
@@ -60,19 +62,24 @@ export function updateRealtimeChallenge(
   const base = reset ? initialRealtimeState(challenge.id) : previous;
   const deltaSeconds = reset || base.lastTimestampMs === 0 ? 0 : clamp((snapshot.capturedAtMs - base.lastTimestampMs) / 1000, 0, 1);
   const baselineX = reset && snapshot.hasPose ? snapshot.centerX : base.baselineX;
+  const minimumScore = effectiveQualityTarget(challenge.minimumScore, settings);
+  const minimumVisibility = effectiveQualityTarget(challenge.minimumVisibility, settings);
   const qualityReady =
-    snapshot.hasPose && snapshot.score >= challenge.minimumScore && snapshot.visibility >= challenge.minimumVisibility;
+    snapshot.hasPose && snapshot.score >= minimumScore && snapshot.visibility >= minimumVisibility;
 
   switch (challenge.mechanic) {
     case "squat-reps":
-      return buildRepState(challenge, snapshot, base, qualityReady);
+      return buildRepState(challenge, snapshot, base, qualityReady, settings, minimumScore, minimumVisibility);
     case "balance-hold":
       return buildHoldState(
         challenge,
         snapshot,
         base,
         deltaSeconds,
-        qualityReady && Math.abs(snapshot.centerX - 0.5) <= 0.12 && snapshot.shoulderTilt <= 0.06,
+        settings,
+        minimumScore,
+        minimumVisibility,
+        qualityReady && Math.abs(snapshot.centerX - 0.5) <= settings.balanceTolerance && snapshot.shoulderTilt <= settings.shoulderTolerance,
         "Balance locked",
         "Center and level your shoulders"
       );
@@ -82,12 +89,15 @@ export function updateRealtimeChallenge(
         snapshot,
         base,
         deltaSeconds,
+        settings,
+        minimumScore,
+        minimumVisibility,
         qualityReady && snapshot.handsAboveHead,
         "Signal held",
         "Raise both hands above your head"
       );
     case "side-steps":
-      return buildSideStepState(challenge, snapshot, base, deltaSeconds, baselineX, qualityReady);
+      return buildSideStepState(challenge, snapshot, base, deltaSeconds, baselineX, qualityReady, settings, minimumScore, minimumVisibility);
     case "hold-visible":
     default:
       return buildHoldState(
@@ -95,6 +105,9 @@ export function updateRealtimeChallenge(
         snapshot,
         base,
         deltaSeconds,
+        settings,
+        minimumScore,
+        minimumVisibility,
         qualityReady && snapshot.inFrameRatio >= 0.9,
         "Tracking stable",
         "Keep the full body visible"
@@ -107,14 +120,17 @@ function buildHoldState(
   snapshot: PoseSnapshot,
   previous: RealtimeChallengeState,
   deltaSeconds: number,
+  settings: ChallengeSettings,
+  minimumScore: number,
+  minimumVisibility: number,
   condition: boolean,
   readyMessage: string,
   waitingMessage: string
 ): RealtimeChallengeState {
-  const target = challenge.targetSeconds ?? 1;
+  const target = effectiveSecondsTarget(challenge, settings);
   const holdSeconds = condition
     ? previous.holdSeconds + deltaSeconds
-    : Math.max(0, previous.holdSeconds - deltaSeconds * 1.5);
+    : Math.max(0, previous.holdSeconds - deltaSeconds * settings.progressDecay);
   const completed = holdSeconds >= target;
   const objective = objectiveState("hold", "Hold", holdSeconds, target, "s");
 
@@ -132,8 +148,8 @@ function buildHoldState(
     message: completed ? "Unlocked automatically." : condition ? readyMessage : waitingMessage,
     objectives: [
       objective,
-      objectiveState("score", "Score", snapshot.score, challenge.minimumScore, "%"),
-      objectiveState("visibility", "Visibility", snapshot.visibility, challenge.minimumVisibility, "%")
+      objectiveState("score", "Score", snapshot.score, minimumScore, "%"),
+      objectiveState("visibility", "Visibility", snapshot.visibility, minimumVisibility, "%")
     ]
   };
 }
@@ -142,9 +158,12 @@ function buildRepState(
   challenge: Challenge,
   snapshot: PoseSnapshot,
   previous: RealtimeChallengeState,
-  qualityReady: boolean
+  qualityReady: boolean,
+  settings: ChallengeSettings,
+  minimumScore: number,
+  minimumVisibility: number
 ): RealtimeChallengeState {
-  const target = challenge.targetReps ?? 1;
+  const target = effectiveRepTarget(challenge, settings);
   const completed = qualityReady && snapshot.reps >= target;
 
   return {
@@ -160,8 +179,8 @@ function buildRepState(
     message: completed ? "Unlocked automatically." : "Clean squat reps charge this sidequest.",
     objectives: [
       objectiveState("reps", "Reps", snapshot.reps, target, ""),
-      objectiveState("score", "Score", snapshot.score, challenge.minimumScore, "%"),
-      objectiveState("visibility", "Visibility", snapshot.visibility, challenge.minimumVisibility, "%")
+      objectiveState("score", "Score", snapshot.score, minimumScore, "%"),
+      objectiveState("visibility", "Visibility", snapshot.visibility, minimumVisibility, "%")
     ]
   };
 }
@@ -172,12 +191,15 @@ function buildSideStepState(
   previous: RealtimeChallengeState,
   deltaSeconds: number,
   baselineX: number,
-  qualityReady: boolean
+  qualityReady: boolean,
+  settings: ChallengeSettings,
+  minimumScore: number,
+  minimumVisibility: number
 ): RealtimeChallengeState {
-  const side = sideFromCenter(snapshot.centerX, baselineX);
+  const side = sideFromCenter(snapshot.centerX, baselineX, settings.sideStepSensitivity);
   const sideReps =
     qualityReady && side !== "center" && side !== previous.lastSide ? previous.sideReps + 1 : previous.sideReps;
-  const target = challenge.targetReps ?? 1;
+  const target = effectiveRepTarget(challenge, settings);
   const completed = qualityReady && sideReps >= target;
 
   return {
@@ -196,20 +218,32 @@ function buildSideStepState(
     message: completed ? "Unlocked automatically." : "Cross the lane left and right to spark the meter.",
     objectives: [
       objectiveState("steps", "Side hits", sideReps, target, ""),
-      objectiveState("score", "Score", snapshot.score, challenge.minimumScore, "%"),
-      objectiveState("visibility", "Visibility", snapshot.visibility, challenge.minimumVisibility, "%")
+      objectiveState("score", "Score", snapshot.score, minimumScore, "%"),
+      objectiveState("visibility", "Visibility", snapshot.visibility, minimumVisibility, "%")
     ]
   };
 }
 
-function sideFromCenter(centerX: number, baselineX: number): "left" | "right" | "center" {
-  if (centerX < baselineX - 0.075) {
+function sideFromCenter(centerX: number, baselineX: number, sensitivity: number): "left" | "right" | "center" {
+  if (centerX < baselineX - sensitivity) {
     return "left";
   }
-  if (centerX > baselineX + 0.075) {
+  if (centerX > baselineX + sensitivity) {
     return "right";
   }
   return "center";
+}
+
+function effectiveSecondsTarget(challenge: Challenge, settings: ChallengeSettings): number {
+  return Math.max(1, Math.round((challenge.targetSeconds ?? 1) * settings.timeScale));
+}
+
+function effectiveRepTarget(challenge: Challenge, settings: ChallengeSettings): number {
+  return Math.max(1, (challenge.targetReps ?? 1) + settings.repAdjustment);
+}
+
+function effectiveQualityTarget(value: number, settings: ChallengeSettings): number {
+  return clamp(value + settings.qualityGateOffset, 0.1, 0.98);
 }
 
 function objectiveState(id: string, label: string, value: number, target: number, unit: string): ObjectiveState {

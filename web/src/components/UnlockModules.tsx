@@ -2,6 +2,7 @@ import { Download, FileJson, LockKeyhole, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Challenge, Unlock } from "../api/types";
 import type { RealtimeChallengeState } from "../challenges/realtime";
+import { isModuleUnlocked, moduleDefinitions, type ModuleDefinition } from "../modules/catalog";
 import type { PoseSnapshot } from "../pose/usePoseTracker";
 
 export type TrailPoint = {
@@ -52,47 +53,45 @@ export function UnlockModules({
         <Sparkles aria-hidden="true" />
         <h2>Modules</h2>
       </div>
-      <Module title="Motion Trail" unlocked={unlockedIDs.has("trail-overlay") || unlockedIDs.has("lane-sparks")}>
-        <div className="trail-preview" aria-label="Motion trail overlay preview">
-          {trailPoints.map((point, index) => (
-            <span
-              className="trail-dot"
-              key={point.id}
-              style={{
-                left: `${point.x}%`,
-                top: `${point.y}%`,
-                opacity: Math.max(0.18, 1 - index / 24),
-                transform: `scale(${0.7 + point.strength * 0.8})`
-              }}
-            />
-          ))}
-        </div>
-      </Module>
-      <Module title="Wireframe Avatar" unlocked={unlockedIDs.has("avatar-wireframe")}>
-        <WireframeAvatar snapshot={snapshot} />
-      </Module>
-      <Module title="Precision Export" unlocked={unlockedIDs.has("precision-export")}>
-        <div className="export-preview">
-          <FileJson aria-hidden="true" />
-          <pre>{JSON.stringify(exportPayload, null, 2)}</pre>
-          <button className="icon-button compact" type="button" onClick={() => downloadExport(exportPayload)}>
-            <Download aria-hidden="true" />
-            <span>Export</span>
-          </button>
-        </div>
-      </Module>
+      {moduleDefinitions.map((module) => (
+        <Module definition={module} key={module.id} unlocked={isModuleUnlocked(module, unlockedIDs)}>
+          {module.id === "motion-trail" ? <MotionTrailPreview trailPoints={trailPoints} /> : null}
+          {module.id === "wireframe-avatar" ? <WireframeAvatar snapshot={snapshot} /> : null}
+          {module.id === "precision-export" ? <PrecisionExportPreview payload={exportPayload} /> : null}
+        </Module>
+      ))}
     </section>
   );
 }
 
-function Module({ children, title, unlocked }: { children: ReactNode; title: string; unlocked: boolean }) {
+function Module({ children, definition, unlocked }: { children: ReactNode; definition: ModuleDefinition; unlocked: boolean }) {
   return (
     <div className={unlocked ? "module is-open" : "module"}>
       <div className="module-title">
         {unlocked ? <Sparkles aria-hidden="true" /> : <LockKeyhole aria-hidden="true" />}
-        <strong>{title}</strong>
+        <strong>{definition.title}</strong>
       </div>
-      {unlocked ? children : <span className="locked-copy">Locked</span>}
+      <p>{definition.description}</p>
+      {unlocked ? children : <span className="locked-copy">{definition.lockedHint}</span>}
+    </div>
+  );
+}
+
+function MotionTrailPreview({ trailPoints }: { trailPoints: TrailPoint[] }) {
+  return (
+    <div className="trail-preview" aria-label="Motion trail overlay preview">
+      {trailPoints.map((point, index) => (
+        <span
+          className="trail-dot"
+          key={point.id}
+          style={{
+            left: `${point.x}%`,
+            top: `${point.y}%`,
+            opacity: Math.max(0.18, 1 - index / 24),
+            transform: `scale(${0.7 + point.strength * 0.8})`
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -116,6 +115,19 @@ function WireframeAvatar({ snapshot }: { snapshot: PoseSnapshot }) {
       <circle cx={center - 18} cy="104" r="3" />
       <circle cx={center + 18} cy="104" r="3" />
     </svg>
+  );
+}
+
+function PrecisionExportPreview({ payload }: { payload: unknown }) {
+  return (
+    <div className="export-preview">
+      <FileJson aria-hidden="true" />
+      <pre>{JSON.stringify(payload, null, 2)}</pre>
+      <button className="icon-button compact" type="button" onClick={() => downloadExport(payload)}>
+        <Download aria-hidden="true" />
+        <span>Export</span>
+      </button>
+    </div>
   );
 }
 

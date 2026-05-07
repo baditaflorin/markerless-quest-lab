@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Challenge } from "../api/types";
 import type { PoseSnapshot } from "../pose/usePoseTracker";
 import { initialRealtimeState, updateRealtimeChallenge } from "./realtime";
+import { defaultChallengeSettings } from "./settings";
 
 const baseChallenge: Challenge = {
   id: "calibrate-frame",
@@ -54,6 +55,16 @@ describe("real-time challenge state", () => {
     state = updateRealtimeChallenge(challenge, snapshot({ centerX: 0.62, capturedAtMs: 1400 }), state);
 
     expect(state.reps).toBe(2);
+    expect(state.completed).toBe(true);
+  });
+
+  it("uses settings to make hold targets adjustable", () => {
+    const settings = { ...defaultChallengeSettings, timeScale: 0.5 };
+    let state = initialRealtimeState(baseChallenge.id);
+
+    state = updateRealtimeChallenge(baseChallenge, snapshot({ capturedAtMs: 1000 }), state, settings);
+    state = updateRealtimeChallenge(baseChallenge, snapshot({ capturedAtMs: 2000 }), state, settings);
+
     expect(state.completed).toBe(true);
   });
 });

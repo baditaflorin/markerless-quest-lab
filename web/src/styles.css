@@ -514,6 +514,12 @@ h1 {
   height: 17px;
 }
 
+.module p {
+  margin: 8px 0 0;
+  color: #d9d0c3;
+  font-size: 0.84rem;
+}
+
 .locked-copy {
   display: block;
   margin-top: 8px;
@@ -572,6 +578,127 @@ h1 {
   min-width: 0;
   width: fit-content;
   min-height: 34px;
+}
+
+.help-panel,
+.settings-panel {
+  padding-bottom: 10px;
+}
+
+.help-panel p,
+.unlock-reason {
+  margin: 0;
+  padding: 0 14px 12px;
+  color: #e8e1d4;
+}
+
+.help-block {
+  padding: 0 14px 10px;
+}
+
+.help-block h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--amber);
+  font-size: 0.86rem;
+}
+
+.help-block h3 svg {
+  width: 16px;
+  height: 16px;
+}
+
+.help-block ol,
+.help-block ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.help-block li {
+  margin-bottom: 7px;
+  color: #e7dfcf;
+}
+
+.settings-impact {
+  display: grid;
+  gap: 2px;
+  margin: 0 14px 12px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: #151512;
+}
+
+.settings-impact span,
+.dial span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.settings-impact strong {
+  color: var(--mint);
+  font-size: 0.86rem;
+}
+
+.unlock-reason {
+  color: var(--lime);
+}
+
+.settings-panel .panel-heading {
+  justify-content: space-between;
+}
+
+.icon-only {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #23231f;
+  color: #fffaf0;
+  cursor: pointer;
+}
+
+.icon-only svg {
+  width: 16px;
+  height: 16px;
+}
+
+.dial {
+  display: grid;
+  gap: 8px;
+  padding: 8px 14px;
+}
+
+.dial span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dial strong {
+  color: var(--amber);
+  font-size: 0.82rem;
+}
+
+.dial input[type="range"] {
+  width: 100%;
+  accent-color: var(--mint);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 14px 0;
+  color: #e7dfcf;
+  font-size: 0.86rem;
+}
+
+.toggle-row input {
+  accent-color: var(--mint);
 }
 
 .error-panel {

@@ -36,6 +36,7 @@ No users were impacted. This postmortem records the implementation issues found 
 - Progress responses now always initialize `unlocks` to an empty array, and the frontend tolerates older `null` responses.
 - Unlocks now map to real UI modules: motion trail overlay, wireframe avatar, and precision export preview.
 - A browser-only static demo mode and local GitHub Pages publishing script were added.
+- Sidequest help, module lock hints, and adjustable challenge settings were added after manual UX testing showed the tasks were not self-explanatory enough.
 
 ## Validation
 

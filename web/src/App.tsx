@@ -5,9 +5,12 @@ import { createSession, fetchChallenges, isStaticDemo, submitChallengeEvent } fr
 import { localChallenges } from "./api/localCatalog";
 import type { Unlock } from "./api/types";
 import { initialRealtimeState, updateRealtimeChallenge } from "./challenges/realtime";
+import { loadChallengeSettings, saveChallengeSettings } from "./challenges/settings";
 import { CaptureStage } from "./components/CaptureStage";
 import { ChallengeRail } from "./components/ChallengeRail";
 import { QuestBrief } from "./components/QuestBrief";
+import { SettingsPanel } from "./components/SettingsPanel";
+import { SidequestHelp } from "./components/SidequestHelp";
 import { TelemetryStrip } from "./components/TelemetryStrip";
 import { UnlockModules, type TrailPoint } from "./components/UnlockModules";
 import { usePoseTracker } from "./pose/usePoseTracker";
@@ -21,6 +24,7 @@ export default function App() {
   const [unlocked, setUnlocked] = useState<Unlock[]>([]);
   const [lastMessage, setLastMessage] = useState<string | null>(null);
   const [questState, setQuestState] = useState(initialRealtimeState());
+  const [settings, setSettings] = useState(loadChallengeSettings);
   const [trailPoints, setTrailPoints] = useState<TrailPoint[]>([]);
   const tracker = usePoseTracker();
   const demoMode = isStaticDemo() || Boolean(error);
@@ -41,10 +45,14 @@ export default function App() {
   }, [activeChallenge?.id]);
 
   useEffect(() => {
+    saveChallengeSettings(settings);
+  }, [settings]);
+
+  useEffect(() => {
     if (tracker.status !== "running" || tracker.snapshot.capturedAtMs === 0) {
       return;
     }
-    setQuestState((current) => updateRealtimeChallenge(activeChallenge, tracker.snapshot, current));
+    setQuestState((current) => updateRealtimeChallenge(activeChallenge, tracker.snapshot, current, settings));
     if (tracker.snapshot.hasPose) {
       setTrailPoints((current) => [
         {
@@ -56,7 +64,7 @@ export default function App() {
         ...current.slice(0, 28)
       ]);
     }
-  }, [activeChallenge, tracker.snapshot, tracker.status]);
+  }, [activeChallenge, settings, tracker.snapshot, tracker.status]);
 
   const eventMutation = useMutation({
     mutationFn: async (eventType: "progress" | "completion") => {
@@ -88,11 +96,17 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (!activeChallenge || !questState.completed || completedIDs.has(activeChallenge.id) || eventMutation.isPending) {
+    if (
+      !settings.autoSyncCompletions ||
+      !activeChallenge ||
+      !questState.completed ||
+      completedIDs.has(activeChallenge.id) ||
+      eventMutation.isPending
+    ) {
       return;
     }
     eventMutation.mutate("completion");
-  }, [activeChallenge, completedIDs, eventMutation, questState.completed]);
+  }, [activeChallenge, completedIDs, eventMutation, questState.completed, settings.autoSyncCompletions]);
 
   async function handleStart() {
     const session = sessionID ?? (await createSession()).sessionId;
@@ -157,6 +171,8 @@ export default function App() {
           questState={questState}
           snapshot={tracker.snapshot}
         />
+        <SidequestHelp activeChallenge={activeChallenge} settings={settings} />
+        <SettingsPanel settings={settings} onChange={setSettings} />
         <UnlockModules
           activeChallenge={activeChallenge}
           completedIDs={completedIDs}
