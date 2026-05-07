@@ -21,7 +21,7 @@ flowchart LR
     Nginx --> API
 ```
 
-The webcam stream stays in the browser. The backend receives only high-level challenge events and session metadata.
+The webcam stream stays in the browser. The backend receives only high-level challenge events and session metadata. The MediaPipe WASM runtime files required by the browser tracker are vendored from the npm package into `web/public/vendor/mediapipe/wasm` so the app does not depend on a fragile runtime CDN URL.
 
 ## Local Development
 
@@ -55,6 +55,21 @@ open http://localhost:25342
 ```
 
 The hooks run the same local checks before commits and pushes. No CI configuration is included by design.
+
+## Browser-only Demo
+
+The frontend can run without the Go API. In browser-only mode it uses the local challenge catalog, local session state, vendored MediaPipe WASM, and the same real-time sidequest engine.
+
+```bash
+npm --prefix web run build:pages
+./scripts/publish-pages.sh
+```
+
+After Pages is configured to serve the `gh-pages` branch, the demo URL is:
+
+```text
+https://baditaflorin.github.io/markerless-quest-lab/
+```
 
 ## Container Publishing
 
@@ -90,4 +105,6 @@ docker compose -f docker-compose.server.yml --profile observability up -d
 - [ADR 0002: Go API and observability stack](docs/adr/0002-go-api-observability.md)
 - [ADR 0003: Challenge GUI and unlock model](docs/adr/0003-challenge-gui-unlocks.md)
 - [ADR 0004: Container deployment and local hooks](docs/adr/0004-container-deployment-local-hooks.md)
+- [ADR 0005: Real-time sidequest engine and unlock modules](docs/adr/0005-realtime-sidequest-engine.md)
+- [ADR 0006: Browser-only GitHub Pages demo](docs/adr/0006-browser-only-github-pages-demo.md)
 - [Initial build postmortem](docs/postmortem/2026-05-07-initial-build.md)

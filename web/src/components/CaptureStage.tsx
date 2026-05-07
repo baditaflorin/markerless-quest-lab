@@ -1,6 +1,8 @@
 import { Camera, CircleStop, LoaderCircle, RadioTower, SendHorizontal } from "lucide-react";
 import type { RefObject } from "react";
 import type { Challenge } from "../api/types";
+import type { RealtimeChallengeState } from "../challenges/realtime";
+import type { TrailPoint } from "./UnlockModules";
 import type { PoseSnapshot, TrackerStatus } from "../pose/usePoseTracker";
 
 type Props = {
@@ -10,9 +12,12 @@ type Props = {
   onStart: () => void;
   onStop: () => void;
   onSubmit: () => void;
+  questState: RealtimeChallengeState;
   snapshot: PoseSnapshot;
   status: TrackerStatus;
   submitting: boolean;
+  trailEnabled: boolean;
+  trailPoints: TrailPoint[];
   videoRef: RefObject<HTMLVideoElement | null>;
 };
 
@@ -23,9 +28,12 @@ export function CaptureStage({
   onStart,
   onStop,
   onSubmit,
+  questState,
   snapshot,
   status,
   submitting,
+  trailEnabled,
+  trailPoints,
   videoRef
 }: Props) {
   const ready = status === "running" && snapshot.hasPose;
@@ -57,15 +65,38 @@ export function CaptureStage({
             title="Submit sidequest progress"
           >
             {submitting ? <LoaderCircle aria-hidden="true" className="spin" /> : <SendHorizontal aria-hidden="true" />}
-            <span>Submit</span>
+            <span>Sync</span>
           </button>
         </div>
       </div>
 
       <div className="video-frame">
         <video ref={videoRef} className="camera-feed" playsInline muted />
+        {trailEnabled ? (
+          <div className="motion-trail" aria-hidden="true">
+            {trailPoints.map((point, index) => (
+              <span
+                className="trail-dot"
+                key={point.id}
+                style={{
+                  left: `${point.x}%`,
+                  top: `${point.y}%`,
+                  opacity: Math.max(0.18, 1 - index / 24),
+                  transform: `scale(${0.8 + point.strength * 1.1})`
+                }}
+              />
+            ))}
+          </div>
+        ) : null}
         <canvas ref={canvasRef} className="pose-canvas" />
         <div className="scan-line" />
+        <div className="quest-progress">
+          <span>{questState.message}</span>
+          <strong>{Math.round(questState.progress * 100)}%</strong>
+          <div>
+            <i style={{ width: `${questState.progress * 100}%` }} />
+          </div>
+        </div>
         <div className="capture-status">
           <RadioTower aria-hidden="true" />
           <span>{statusLabel(status, snapshot.hasPose)}</span>

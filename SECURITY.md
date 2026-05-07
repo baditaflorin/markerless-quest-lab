@@ -4,6 +4,8 @@
 
 Markerless Quest Lab processes webcam frames in the browser. The API should receive only challenge events, scores, visibility summaries, and session IDs.
 
+The GitHub Pages demo is browser-only and does not send challenge progress to the Go API.
+
 Do not commit or upload:
 
 - `.env` files or production configuration.

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { DrawingUtils, Landmark, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { scorePoseQuality, updateSquatCounter, type PoseQuality, type SquatCounterState } from "./poseScoring";
 
-const WASM_BASE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm";
+const WASM_FILESET = {
+  wasmLoaderPath: mediaPipeAsset("vision_wasm_internal.js"),
+  wasmBinaryPath: mediaPipeAsset("vision_wasm_internal.wasm")
+};
 const POSE_MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
 
@@ -12,15 +15,21 @@ export type PoseSnapshot = PoseQuality & {
   reps: number;
   durationSeconds: number;
   hasPose: boolean;
+  capturedAtMs: number;
 };
 
 const emptySnapshot: PoseSnapshot = {
   score: 0,
   visibility: 0,
   inFrameRatio: 0,
+  centerX: 0.5,
+  shoulderTilt: 1,
+  handsAboveHead: false,
+  handsAboveShoulders: false,
   reps: 0,
   durationSeconds: 0,
-  hasPose: false
+  hasPose: false,
+  capturedAtMs: 0
 };
 
 export function usePoseTracker() {
@@ -58,7 +67,7 @@ export function usePoseTracker() {
     setError(null);
 
     try {
-      const [{ FilesetResolver, PoseLandmarker, DrawingUtils }, stream] = await Promise.all([
+      const [{ PoseLandmarker, DrawingUtils }, stream] = await Promise.all([
         import("@mediapipe/tasks-vision"),
         navigator.mediaDevices.getUserMedia({
           video: {
@@ -78,8 +87,7 @@ export function usePoseTracker() {
       video.srcObject = stream;
       await video.play();
 
-      const fileset = await FilesetResolver.forVisionTasks(WASM_BASE_URL);
-      landmarkerRef.current = await PoseLandmarker.createFromOptions(fileset, {
+      landmarkerRef.current = await PoseLandmarker.createFromOptions(WASM_FILESET, {
         baseOptions: {
           modelAssetPath: POSE_MODEL_URL,
           delegate: "GPU"
@@ -115,7 +123,8 @@ export function usePoseTracker() {
         }
 
         context.clearRect(0, 0, canvas.width, canvas.height);
-        const result = landmarker.detectForVideo(video, performance.now());
+        const now = performance.now();
+        const result = landmarker.detectForVideo(video, now);
         const landmarks = result.landmarks[0] as Landmark[] | undefined;
 
         if (landmarks) {
@@ -137,7 +146,8 @@ export function usePoseTracker() {
           ...quality,
           hasPose: Boolean(landmarks),
           reps: squatStateRef.current.reps,
-          durationSeconds: Math.floor((performance.now() - startedAtRef.current) / 1000)
+          durationSeconds: Math.floor((now - startedAtRef.current) / 1000),
+          capturedAtMs: now
         });
 
         animationRef.current = requestAnimationFrame(draw);
@@ -159,4 +169,8 @@ export function usePoseTracker() {
     start,
     stop
   };
+}
+
+function mediaPipeAsset(filename: string): string {
+  return `${import.meta.env.BASE_URL}vendor/mediapipe/wasm/${filename}`;
 }

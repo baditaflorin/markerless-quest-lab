@@ -8,6 +8,7 @@ export type Challenge = {
   id: string;
   title: string;
   category: string;
+  mechanic: string;
   description: string;
   targetSeconds?: number;
   targetReps?: number;

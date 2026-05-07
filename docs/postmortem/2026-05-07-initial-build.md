@@ -22,6 +22,9 @@ No users were impacted. This postmortem records the implementation issues found 
 - The first capture UI wiring used a hidden video element for the webcam stream, leaving the visible capture surface detached.
 - The smoke script printed noisy connection errors while waiting for the API to boot.
 - ADR 0004 originally described one combined runtime image, but the better deployment shape became separate API and web images.
+- After the first push, browser testing showed jsDelivr returned `404` for `@mediapipe/tasks-vision@0.10.22/wasm/vision_wasm_internal.js`.
+- Manual submit exposed an API contract bug: incomplete progress encoded `unlocks` as `null`, while the frontend expected an array.
+- The first unlock catalog named motion trail, wireframe avatar, and precision export rewards before those modules existed in the GUI.
 
 ## Fixes Applied
 
@@ -29,6 +32,10 @@ No users were impacted. This postmortem records the implementation issues found 
 - The visible camera element now receives the tracker ref directly.
 - Smoke health polling suppresses expected startup failures.
 - ADR 0004 and README were updated to match the two-image GHCR deployment model.
+- MediaPipe WASM runtime files are now vendored into the Vite public asset tree and referenced by stable app-local URLs.
+- Progress responses now always initialize `unlocks` to an empty array, and the frontend tolerates older `null` responses.
+- Unlocks now map to real UI modules: motion trail overlay, wireframe avatar, and precision export preview.
+- A browser-only static demo mode and local GitHub Pages publishing script were added.
 
 ## Validation
 
@@ -37,6 +44,7 @@ Completed successfully:
 - `go test ./...`
 - `npm --prefix web run test`
 - `npm --prefix web run build`
+- `npm --prefix web run build:pages`
 - `./scripts/check.sh`
 - `./scripts/smoke.sh`
 - `docker compose build`

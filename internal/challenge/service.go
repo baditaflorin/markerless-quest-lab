@@ -25,6 +25,7 @@ type Challenge struct {
 	ID                string   `json:"id"`
 	Title             string   `json:"title"`
 	Category          string   `json:"category"`
+	Mechanic          string   `json:"mechanic"`
 	Description       string   `json:"description"`
 	TargetSeconds     int      `json:"targetSeconds,omitempty"`
 	TargetReps        int      `json:"targetReps,omitempty"`
@@ -118,6 +119,7 @@ func (s *Service) RecordEvent(_ context.Context, event Event) (Progress, error) 
 		Score:       event.Score,
 		Visibility:  event.Visibility,
 		Message:     progressMessage(completed, item),
+		Unlocks:     []Unlock{},
 		RecordedAt:  time.Now().UTC(),
 	}
 	if completed {

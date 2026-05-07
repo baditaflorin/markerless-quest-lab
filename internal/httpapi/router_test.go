@@ -81,6 +81,24 @@ func TestCreateSessionAndCompleteChallenge(t *testing.T) {
 	}
 }
 
+func TestIncompleteChallengeReturnsEmptyUnlockArray(t *testing.T) {
+	router := testRouter()
+
+	body := []byte(`{"sessionId":"session-1","eventType":"progress","score":0.2,"visibility":0.2,"durationSeconds":1}`)
+	req := httptest.NewRequest(http.MethodPost, "/api/challenges/calibrate-frame/events", bytes.NewReader(body))
+	res := httptest.NewRecorder()
+	router.ServeHTTP(res, req)
+	if res.Code != http.StatusAccepted {
+		t.Fatalf("event status = %d body=%s", res.Code, res.Body.String())
+	}
+	if strings.Contains(res.Body.String(), `"unlocks":null`) {
+		t.Fatalf("unlocks should be an empty array, got %s", res.Body.String())
+	}
+	if !strings.Contains(res.Body.String(), `"unlocks":[]`) {
+		t.Fatalf("expected empty unlock array, got %s", res.Body.String())
+	}
+}
+
 func TestMetricsEndpointIncludesCustomMetrics(t *testing.T) {
 	router := testRouter()
 
