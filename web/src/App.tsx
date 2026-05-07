@@ -26,7 +26,16 @@ export default function App() {
   const [questState, setQuestState] = useState(initialRealtimeState());
   const [settings, setSettings] = useState(loadChallengeSettings);
   const [trailPoints, setTrailPoints] = useState<TrailPoint[]>([]);
-  const tracker = usePoseTracker();
+  const trackerOptions = useMemo(
+    () => ({
+      artMode: settings.artMode,
+      landmarkDetail: settings.landmarkDetail,
+      modelVariant: settings.modelVariant,
+      targetPart: settings.targetPart
+    }),
+    [settings.artMode, settings.landmarkDetail, settings.modelVariant, settings.targetPart]
+  );
+  const tracker = usePoseTracker(trackerOptions);
   const demoMode = isStaticDemo() || Boolean(error);
 
   useEffect(() => {
@@ -115,7 +124,7 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell art-${settings.artMode}`}>
       <aside className="sidebar">
         <div className="brand-lockup">
           <span className="brand-mark">MQ</span>

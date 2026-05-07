@@ -108,4 +108,5 @@ docker compose -f docker-compose.server.yml --profile observability up -d
 - [ADR 0005: Real-time sidequest engine and unlock modules](docs/adr/0005-realtime-sidequest-engine.md)
 - [ADR 0006: Browser-only GitHub Pages demo](docs/adr/0006-browser-only-github-pages-demo.md)
 - [ADR 0007: Module and settings contracts](docs/adr/0007-module-and-settings-contracts.md)
+- [ADR 0008: Viewport tracking and art controls](docs/adr/0008-viewport-tracking-and-art-controls.md)
 - [Initial build postmortem](docs/postmortem/2026-05-07-initial-build.md)

@@ -25,6 +25,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #10100f;
+  overflow: hidden;
 }
 
 button {
@@ -34,7 +35,8 @@ button {
 .app-shell {
   display: grid;
   grid-template-columns: minmax(240px, 280px) minmax(420px, 1fr) minmax(260px, 340px);
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .sidebar,
@@ -51,6 +53,8 @@ button {
   padding: 18px;
   border-color: var(--line);
   background: #161613;
+  min-height: 0;
+  overflow: auto;
 }
 
 .sidebar {
@@ -65,7 +69,9 @@ button {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 16px;
+  min-height: 0;
   padding: 18px;
+  overflow: hidden;
 }
 
 .brand-lockup,
@@ -217,6 +223,7 @@ button {
   display: grid;
   grid-template-rows: auto minmax(240px, 1fr) auto;
   min-height: 0;
+  overflow: hidden;
 }
 
 .stage-toolbar {
@@ -285,6 +292,9 @@ h1 {
 .video-frame {
   position: relative;
   display: grid;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: calc(100dvh - 178px);
   min-height: 0;
   overflow: hidden;
   border: 1px solid #504c40;
@@ -395,7 +405,7 @@ h1 {
 
 .telemetry-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(110px, 1fr));
+  grid-template-columns: repeat(5, minmax(104px, 1fr));
   gap: 10px;
 }
 
@@ -683,9 +693,74 @@ h1 {
   font-size: 0.82rem;
 }
 
-.dial input[type="range"] {
+.dial input[type="range"],
+.dial select {
   width: 100%;
   accent-color: var(--mint);
+}
+
+.dial select {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #151512;
+  color: #f7f4ec;
+}
+
+.art-neon .video-frame {
+  border-color: rgba(45, 212, 191, 0.62);
+  box-shadow: inset 0 0 34px rgba(45, 212, 191, 0.08);
+}
+
+.art-constellation .video-frame {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(251, 191, 36, 0.12) 1px, transparent 2px),
+    radial-gradient(circle at 72% 34%, rgba(248, 250, 252, 0.13) 1px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    #10100f;
+  background-size: 92px 92px, 128px 128px, 48px 48px, auto;
+}
+
+.art-ink .video-frame {
+  filter: contrast(1.08);
+  background:
+    linear-gradient(90deg, rgba(247, 244, 236, 0.04) 1px, transparent 1px),
+    #11100d;
+}
+
+.art-thermal .video-frame {
+  border-color: rgba(251, 113, 133, 0.58);
+  box-shadow: inset 0 0 44px rgba(251, 113, 133, 0.10);
+}
+
+.art-blueprint .video-frame {
+  background:
+    linear-gradient(90deg, rgba(125, 211, 252, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(125, 211, 252, 0.08) 1px, transparent 1px),
+    #0b1320;
+  background-size: 40px 40px;
+}
+
+.art-constellation .trail-dot {
+  background: rgba(251, 191, 36, 0.65);
+  border-color: rgba(248, 250, 252, 0.8);
+}
+
+.art-ink .trail-dot {
+  background: rgba(247, 244, 236, 0.48);
+  border-radius: 20% 50% 35% 60%;
+  border-color: rgba(247, 244, 236, 0.8);
+}
+
+.art-thermal .trail-dot {
+  background: rgba(251, 113, 133, 0.66);
+  border-color: rgba(251, 191, 36, 0.9);
+}
+
+.art-blueprint .trail-dot {
+  background: rgba(125, 211, 252, 0.54);
+  border-radius: 2px;
+  border-color: rgba(219, 234, 254, 0.85);
 }
 
 .toggle-row {
@@ -735,8 +810,14 @@ h1 {
 }
 
 @media (max-width: 780px) {
+  body {
+    overflow: auto;
+  }
+
   .app-shell {
     display: block;
+    height: auto;
+    overflow: visible;
   }
 
   .sidebar,
@@ -766,6 +847,7 @@ h1 {
 
   .video-frame {
     aspect-ratio: 4 / 3;
+    max-height: none;
   }
 
   .telemetry-strip {

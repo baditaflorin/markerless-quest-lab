@@ -30,6 +30,9 @@ function snapshot(overrides: Partial<PoseSnapshot> = {}): PoseSnapshot {
     durationSeconds: 0,
     hasPose: true,
     capturedAtMs: 0,
+    targetLabel: "Full body",
+    targetLocked: true,
+    targetVisibility: 0.8,
     ...overrides
   };
 }

@@ -4,6 +4,7 @@ import {
   normalizeSettings,
   type ChallengeSettings
 } from "../challenges/settings";
+import { artModeLabels, targetPartLabels } from "../pose/options";
 
 type Props = {
   settings: ChallengeSettings;
@@ -24,6 +25,37 @@ export function SettingsPanel({ settings, onChange }: Props) {
           <RotateCcw aria-hidden="true" />
         </button>
       </div>
+      <SelectDial
+        label="Vision model"
+        onChange={(value) => update("modelVariant", value as ChallengeSettings["modelVariant"])}
+        options={[
+          ["lite", "Lite"],
+          ["full", "Full"],
+          ["heavy", "Heavy"]
+        ]}
+        value={settings.modelVariant}
+      />
+      <SelectDial
+        label="Landmarks"
+        onChange={(value) => update("landmarkDetail", value as ChallengeSettings["landmarkDetail"])}
+        options={[
+          ["core", "Core points"],
+          ["all", "All points"]
+        ]}
+        value={settings.landmarkDetail}
+      />
+      <SelectDial
+        label="Target lock"
+        onChange={(value) => update("targetPart", value as ChallengeSettings["targetPart"])}
+        options={Object.entries(targetPartLabels)}
+        value={settings.targetPart}
+      />
+      <SelectDial
+        label="Art style"
+        onChange={(value) => update("artMode", value as ChallengeSettings["artMode"])}
+        options={Object.entries(artModeLabels)}
+        value={settings.artMode}
+      />
       <Dial
         label="Quality gate"
         max={20}
@@ -96,6 +128,31 @@ export function SettingsPanel({ settings, onChange }: Props) {
         <span>Auto-sync completions</span>
       </label>
     </section>
+  );
+}
+
+function SelectDial({
+  label,
+  onChange,
+  options,
+  value
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  options: [string, string][];
+  value: string;
+}) {
+  return (
+    <label className="dial">
+      <span>{label}</span>
+      <select onChange={(event) => onChange(event.target.value)} value={value}>
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue} value={optionValue}>
+            {optionLabel}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

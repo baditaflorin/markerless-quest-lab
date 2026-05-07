@@ -37,6 +37,8 @@ No users were impacted. This postmortem records the implementation issues found 
 - Unlocks now map to real UI modules: motion trail overlay, wireframe avatar, and precision export preview.
 - A browser-only static demo mode and local GitHub Pages publishing script were added.
 - Sidequest help, module lock hints, and adjustable challenge settings were added after manual UX testing showed the tasks were not self-explanatory enough.
+- The desktop layout was converted into a no-page-scroll cockpit after testing showed the camera stage could require scrolling before the feed was visible.
+- Tracking controls now cover model capacity, landmark density, target body region, and art mode.
 
 ## Validation
 

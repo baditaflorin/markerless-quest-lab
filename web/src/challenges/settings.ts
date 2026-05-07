@@ -1,4 +1,10 @@
+import type { ArtMode, LandmarkDetail, ModelVariant, TargetPart } from "../pose/options";
+
 export type ChallengeSettings = {
+  artMode: ArtMode;
+  landmarkDetail: LandmarkDetail;
+  modelVariant: ModelVariant;
+  targetPart: TargetPart;
   qualityGateOffset: number;
   timeScale: number;
   repAdjustment: number;
@@ -10,6 +16,10 @@ export type ChallengeSettings = {
 };
 
 export const defaultChallengeSettings: ChallengeSettings = {
+  artMode: "neon",
+  landmarkDetail: "core",
+  modelVariant: "lite",
+  targetPart: "full-body",
   qualityGateOffset: 0,
   timeScale: 1,
   repAdjustment: 0,
@@ -40,6 +50,10 @@ export function saveChallengeSettings(settings: ChallengeSettings): void {
 
 export function normalizeSettings(settings: ChallengeSettings): ChallengeSettings {
   return {
+    artMode: enumValue(settings.artMode, ["neon", "constellation", "ink", "thermal", "blueprint"], "neon"),
+    landmarkDetail: enumValue(settings.landmarkDetail, ["core", "all"], "core"),
+    modelVariant: enumValue(settings.modelVariant, ["lite", "full", "heavy"], "lite"),
+    targetPart: enumValue(settings.targetPart, ["full-body", "hands", "feet", "upper-body", "lower-body"], "full-body"),
     qualityGateOffset: clamp(settings.qualityGateOffset, -0.2, 0.2),
     timeScale: clamp(settings.timeScale, 0.5, 1.8),
     repAdjustment: Math.round(clamp(settings.repAdjustment, -3, 5)),
@@ -49,6 +63,10 @@ export function normalizeSettings(settings: ChallengeSettings): ChallengeSetting
     progressDecay: clamp(settings.progressDecay, 0, 3),
     autoSyncCompletions: Boolean(settings.autoSyncCompletions)
   };
+}
+
+function enumValue<T extends string>(value: string, allowed: T[], fallback: T): T {
+  return allowed.includes(value as T) ? (value as T) : fallback;
 }
 
 function clamp(value: number, min: number, max: number): number {
